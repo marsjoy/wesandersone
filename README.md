@@ -29,41 +29,44 @@ I want to use this template to create an image filter that will wesandersonify a
 
 ## Dataset
 The datasets I will use are available online, and are free to download.
-* Film stills (raw images)
+* Film stills (raw images)  
   * http://film-grab.com/category/wes-anderson/
-* Kuler/Colourlovers palette dataset (matlab data files)
+* Kuler/Colourlovers palette dataset (matlab data files)  
   * http://www.dgp.toronto.edu/~donovan/color/
 
 ## Tools
 I will leverage the open sources Python modules OpenCV-Python and Scikit-Image to analyze the histograms of the stills.
-* Open-CV-Python
+* Open-CV-Python  
   * https://opencv-python-tutroals.readthedocs.org/en/latest/
-* Scikit-Image
+* Scikit-Image  
   * http://scikit-image.org/docs/stable/api/api.html
-* Colormath
+* Colormath  
   * http://python-colormath.readthedocs.org/
 
 ## Resources
 #### Journal Articles
-* Peter O'Donovan, Aseem Agarwala, Aaron Hertzmann. Color Compatibility From Large Datasets. ACM Transactions on Graphics, 2011, 30, 43, (Proc. SIGGRAPH).
+* Peter O'Donovan, Aseem Agarwala, Aaron Hertzmann. Color Compatibility From Large Datasets. ACM Transactions on Graphics, 2011, 30, 43, (Proc. SIGGRAPH).  
 http://www.dgp.toronto.edu/~donovan/color/colorcomp.pdf
-* S. Xue, A. Agarwala, J. Dorsey, H. Rushmeier / Learning and Applying Color Styles From Feature Films
+* S. Xue, A. Agarwala, J. Dorsey, H. Rushmeier / Learning and Applying Color Styles From Feature Films  
 http://graphics.cs.yale.edu/su/pub/PG13/FilmStyle_1_Submit.pdf
 
 #### Tutorials
-* Python for Image Manipulation
+* Python for Image Manipulation  
 http://www.cs.uregina.ca/Links/class-info/325/PythonPictures/
-* Uploading files with Selenium
+* Uploading files with Selenium  
 https://muthutechno.wordpress.com/2014/07/09/uploading-files-in-selenium-webdriver/
-* Color Quantization
+* Color Quantization  
 http://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html
-* Image Processing with K-Means
+* Image Processing with K-Means  
 http://charlesleifer.com/blog/using-python-and-k-means-to-find-the-dominant-colors-in-images/
-* Color Harmonization
+* Color Harmonization  
 http://www.rocket-design.fr/color-template/
+* CIELAB and Color Distance  
+http://johnthemathguy.blogspot.com/2013/10/tolerances-for-spot-colors.html
+http://johnthemathguy.blogspot.com/2013/11/what-difference-does-it-make-part-2.html
 
 #### Blogs
-* Wes Anderson color palettes
+* Wes Anderson color palettes  
 http://wesandersonpalettes.tumblr.com/
 
 ## To Do

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+# Navigates the web, uploads images, and retrieves extracted color information
 import logging
 import re
 
@@ -13,23 +13,28 @@ logger = logging.getLogger(__name__)
 
 
 class ColorScraper(BaseWorkflow):
-    def __init__(self, image=None):
+
+    def __init__(self, image=None, use_firefox=False):
         super(ColorScraper, self).__init__()
+        self.use_firefox = use_firefox
         self.phantomjs_path = self.config.path.get('phantomjs_path', None)
         self.image = image
         self.driver = None
-        self.colors = []
+        self.colors = list()
         self.set_driver()
 
     def set_driver(self):
-        driver = webdriver.PhantomJS(executable_path=self.phantomjs_path)
-        driver.set_window_size(1600, 900)
+        if not self.use_firefox:
+            driver = webdriver.PhantomJS(executable_path=self.phantomjs_path)
+        else:
+            driver = webdriver.Firefox()
+        driver.set_window_size(480, 320)
         driver.get('http://labs.tineye.com/color/')
         self.driver = driver
 
     def process(self):
         self.upload_image()
-        self.set_palette()
+        self.set_colors()
         self.quit()
 
     def upload_image(self):
@@ -42,7 +47,7 @@ class ColorScraper(BaseWorkflow):
         theme_colors = self.driver.find_element(By.CSS_SELECTOR, '.color-range').find_elements(By.CSS_SELECTOR, '.info')
         for color in theme_colors:
             color_info = color.find_elements(By.TAG_NAME, 'span')
-            color_details = {}
+            color_details = dict()
             color_details['hex'] = color_info[0].text
             color_details['weight'] = weight_regex.search(color_info[1].text).group(1)
             color_details['color_name'] = color_info[2].text

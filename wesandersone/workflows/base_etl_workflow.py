@@ -10,12 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class BaseETLWorkflow(BaseWorkflow):
-    def __init__(self, table, start_date, end_date):
+    def __init__(self, workflow_name=None):
         super(BaseETLWorkflow, self).__init__()
-        self.path_data = self.config.path.get('target_data', None)
-        self.table = table
-        self.start_date = start_date
-        self.end_date = end_date
+        self.workflow_name = workflow_name
         self.file_name = None
 
     def process(self):
@@ -54,8 +51,8 @@ class BaseETLWorkflow(BaseWorkflow):
         if self.file_name is None:
             raise Exception('Must be set file_name')
 
-        base_dir = "{path_data}/{table}".format(path_data=self.path_data,
-                                                table=self.table)
+        base_dir = "{path_data}/{workflow_name}".format(path_data=self.path_data,
+                                                workflow_name=self.workflow_name)
         file = "{base_dir}/{file_name}".format(base_dir=base_dir, file_name=self.file_name)
         compressed_file = "{base_dir}/{file_name}.gz".format(base_dir=base_dir,
                                                              file_name=self.file_name)
