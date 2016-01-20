@@ -40,6 +40,8 @@ I will leverage the open sources Python modules OpenCV-Python and Scikit-Image t
   * https://opencv-python-tutroals.readthedocs.org/en/latest/
 * Scikit-Image
   * http://scikit-image.org/docs/stable/api/api.html
+* Colormath
+  * http://python-colormath.readthedocs.org/
 
 ## Resources
 #### Journal Articles
@@ -53,6 +55,12 @@ http://graphics.cs.yale.edu/su/pub/PG13/FilmStyle_1_Submit.pdf
 http://www.cs.uregina.ca/Links/class-info/325/PythonPictures/
 * Uploading files with Selenium
 https://muthutechno.wordpress.com/2014/07/09/uploading-files-in-selenium-webdriver/
+* Color Quantization
+http://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html
+* Image Processing with K-Means
+http://charlesleifer.com/blog/using-python-and-k-means-to-find-the-dominant-colors-in-images/
+* Color Harmonization
+http://www.rocket-design.fr/color-template/
 
 #### Blogs
 * Wes Anderson color palettes
