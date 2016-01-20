@@ -3,9 +3,10 @@
 
 import logging
 import re
-import base64
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+
 from wesandersone.workflows.base_workflow import BaseWorkflow
 
 logger = logging.getLogger(__name__)
