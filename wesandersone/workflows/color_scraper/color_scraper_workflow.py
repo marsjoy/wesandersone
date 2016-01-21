@@ -121,10 +121,6 @@ if __name__ == '__main__':
     director = args.get('--director', None)
     movies = args.get('--movies', None)
 
-    if director and not movies:
-        raise Exception('You must pass a list of '
-                        '--movies if you pass a --director.')
-
     if not director:
         directors = ['wes_anderson', 'david_lynch']
     else:
@@ -133,10 +129,11 @@ if __name__ == '__main__':
     image_path = '/Users/marswilliams/wesandersone/images/'
 
     for director in directors:
-        movies = [x[1] for x in os.walk(
-            '{image_path}/{director}/'.format(image_path=image_path,
-                                              director=director),
-            topdown=False)][-1]
+        if not movies:
+            movies = [x[1] for x in os.walk(
+                '{image_path}/{director}/'.format(image_path=image_path,
+                                                  director=director),
+                topdown=False)][-1]
         workflow = ColorScraperWorkflow(movies=movies,
                                         director=director,)
 
