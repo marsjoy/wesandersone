@@ -6,7 +6,7 @@ My objective is to create a color template that describes Wes Anderson's visual 
 I want to use this template to create an image filter that will wesandersonify any submitted image.
 
 ## Methodology
-1. Create a script to upload Wes Anderson film stills to Kuler, and use Kuler to generate five color palettes per image.
+1. Create a script to upload film stills to image color extractor website, and use extractor to identify dominant colors.
 2. Follow the methodology outlined in the paper Color Compatibility From Large Datasets.
   a. Create a feature vector from color spaces, as defined by the total Kuler dataset: the five colors themselves, colors sorted by lightness, differences between adjacent colors,   sorted color differences, mean, standard deviation, median, max, min, and max minus min across a single channel
   b. Create scores for the Wes Anderson color palettes, examining the percentage of colors in each hue, the percentage of adjacent colors, and the percentage of colors in the same theme.
@@ -72,8 +72,9 @@ http://wesandersonpalettes.tumblr.com/
 ## To Do
 ### Pre-Analysis
 <s>* Download datasets</s>
+<s>* Write web scraper script</s>
+<s>* Write web scraper workflow</s>
 * Load colorCode data in database
-* Write Kuler web browser script
 * Load Wes Anderson theme palettes in database
 
 ### Exploration

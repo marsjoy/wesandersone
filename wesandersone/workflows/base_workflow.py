@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 import abc
 from abc import abstractmethod
+from abc import ABCMeta
 from wesandersone.config.config import Config
 
 
-class BaseWorkflow(metaclass=abc.ABCMeta):
+class BaseWorkflow():
+    __metaclass__ = ABCMeta
 
     def __init__(self):
         self.config = Config()

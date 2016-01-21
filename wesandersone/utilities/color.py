@@ -8,6 +8,9 @@ from colormath.color_objects import HSLColor, HSVColor, LabColor, sRGBColor
 def hex_to_rgb(hex=None):
     return colors.hex2color(hex)
 
+def rgb_to_hex(rgb=None):
+    return colors.rgb2hex(rgb)
+
 def lab_color_properties_from_rgb(rgb=None):
     lab = lab_from_srgb(rgb=rgb)
     return lab_color_properties(lab=lab)
