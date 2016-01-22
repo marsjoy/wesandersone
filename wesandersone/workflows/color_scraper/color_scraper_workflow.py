@@ -57,14 +57,18 @@ class ColorScraperWorkflow(BaseETLWorkflow):
     def extract_color_from_film_still(self, film_still=None, movie=None):
         color_scraper = ColorScraper(image=film_still, use_firefox=True)
         color_scraper.process()
-        for color_details in color_scraper.colors:
-            color_details_with_metadata = self.add_color_conversion_metadata(
-                color_details=color_details)
-            color_details_with_metadata['movie'] = movie
-            color_details_with_metadata['director'] = self.director
-            save_row(file=self.extracted_colors_path,
-                     row=color_details_with_metadata,
-                     field_names=sorted(color_details_with_metadata.keys()))
+        if color_scraper.colors:
+            for color_details in color_scraper.colors:
+                color_details_with_metadata = self.add_color_conversion_metadata(
+                    color_details=color_details)
+                color_details_with_metadata['movie'] = movie
+                color_details_with_metadata['director'] = self.director
+                save_row(file=self.extracted_colors_path,
+                         row=color_details_with_metadata,
+                         field_names=sorted(color_details_with_metadata.keys()))
+        else:
+            logger.error('Unable to extract features for image: ' \
+                         '{film_still}'.format(film_still=film_still))
 
     def add_color_conversion_metadata(self, color_details=None):
         r, g, b, lab, hsv, hsl = self.get_conversions(

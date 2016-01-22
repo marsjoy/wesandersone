@@ -44,7 +44,11 @@ class ColorScraper(BaseWorkflow):
     def set_colors(self):
         weight_regex = re.compile('(?<!\S)(\d*\.?\d+|\d{1,3}(,\d{3})*(\.\d+)?)(?!\S)')
         color_class_regex = re.compile("\(([^)]+)\)")
-        theme_colors = self.driver.find_element(By.CSS_SELECTOR, '.color-range').find_elements(By.CSS_SELECTOR, '.info')
+        try:
+            theme_colors = self.driver.find_element(By.CSS_SELECTOR, '.color-range').find_elements(By.CSS_SELECTOR, '.info')
+        except Exception as error:
+            logger.error(error)
+            return
         for color in theme_colors:
             color_info = color.find_elements(By.TAG_NAME, 'span')
             color_details = dict()
