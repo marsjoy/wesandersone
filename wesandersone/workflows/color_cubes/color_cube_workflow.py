@@ -1,28 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Retrieves dominant colors for film stills using k-means clustering
+# Retrieves dominant colors for film stills using web scraping and color math
 import logging
 import os
+
+from color_cube import ColorCube
 from wesandersone.utilities import command
 from wesandersone.utilities.arguments import Arguments
-from wesandersone.utilities.color import hex_to_rgb, hsl_from_lab, hsv_from_lab, lab_from_rgb, rgb_to_hex
+from wesandersone.utilities.color import hsl_from_lab, hsv_from_lab, lab_from_rgb, rgb_to_hex
 from wesandersone.utilities.writer import save_row
 from wesandersone.workflows.base_etl_workflow import BaseETLWorkflow
-from color_cluster import ColorCluster
 
 logger = logging.getLogger(__name__)
 
 
-class ColorClusteringWorkflow(BaseETLWorkflow):
+class ColorCubeWorkflow(BaseETLWorkflow):
 
     def __init__(self,
                  movies=None,
-                 director=None,
-                 num_clusters=None):
-        super(ColorClusteringWorkflow, self).__init__(workflow_name='color_clustering')
+                 director=None):
+        super(ColorCubeWorkflow, self).__init__(workflow_name='color_cube')
         self.movies = movies
         self.director = director
-        self.num_clusters = num_clusters
         self.image_path = self.config.path.get('source_data', None)
         self.file_name = 'extracted_colors'
         self.base_dir = str()
@@ -40,6 +39,7 @@ class ColorClusteringWorkflow(BaseETLWorkflow):
     def extract(self):
         self.extract_colors_from_film_stills()
 
+
     def extract_colors_from_film_stills(self):
         for movie in movies:
             film_stills_path = '{image_path}/' \
@@ -55,46 +55,44 @@ class ColorClusteringWorkflow(BaseETLWorkflow):
                                                    movie=movie)
 
     def extract_color_from_film_still(self, film_still=None, movie=None):
-        color_clusterer = ColorCluster(image=film_still, num_clusters=self.num_clusters)
-        color_clusterer.process()
-        for color_details in color_clusterer.dominant_colors:
-            color_details_map = {}
-            conversions = self.get_conversions(
-            color_details=color_details)
-            color_details_map_with_metadata = self.add_color_conversion_metadata(
-                conversions=conversions, color_details_map=color_details_map)
-            color_details_map_with_metadata['movie'] = movie
-            color_details_map_with_metadata['director'] = self.director
-            save_row(file=self.extracted_colors_path,
-                     row=color_details_map_with_metadata,
-                     field_names=sorted(color_details_map_with_metadata.keys()))
+        color_cube = ColorCube(avoid_color=[255, 255, 255], image=film_still)
+        color_cube.process()
+        if color_cube.colors:
+            for details in color_cube.colors:
+                color_details = {}
+                color_details['r'], color_details['g'], color_details['b'] = details
+                color_details_with_metadata = self.add_color_conversion_metadata(
+                    color_details=color_details)
+                color_details_with_metadata['movie'] = movie
+                color_details_with_metadata['director'] = self.director
+                save_row(file=self.extracted_colors_path,
+                         row=color_details_with_metadata,
+                         field_names=sorted(color_details_with_metadata.keys()))
+        else:
+            logger.error('Unable to extract features for image: ' \
+                         '{film_still}'.format(film_still=film_still))
 
-    def add_color_conversion_metadata(self, conversions=None, color_details_map=None):
-        r, g, b, hex, lab, hsv, hsl = conversions
-        color_details_map['r'] = r
-        color_details_map['g'] = g
-        color_details_map['b'] = b
-        color_details_map['hex'] = hex
-        color_details_map['lab_l'] = lab.lab_l
-        color_details_map['lab_a'] = lab.lab_a
-        color_details_map['lab_b'] = lab.lab_b
-        color_details_map['observer'] = lab.observer
-        color_details_map['illuminant'] = lab.illuminant
-        color_details_map['hsv_h'] = hsv.hsv_h
-        color_details_map['hsv_s'] = hsv.hsv_s
-        color_details_map['hsv_v'] = hsv.hsv_v
-        color_details_map['hsl_h'] = hsl.hsl_h
-        color_details_map['hsl_s'] = hsl.hsl_s
-        color_details_map['hsl_l'] = hsl.hsl_l
-        return color_details_map
+    def add_color_conversion_metadata(self, color_details=None):
+        hex, lab, hsv, hsl = self.get_conversions(
+            color_details=color_details)
+        color_details['hex'] = hex
+        color_details['lab_l'] = lab.lab_l
+        color_details['lab_a'] = lab.lab_a
+        color_details['lab_b'] = lab.lab_b
+        color_details['hsv_h'] = hsv.hsv_h
+        color_details['hsv_s'] = hsv.hsv_s
+        color_details['hsv_v'] = hsv.hsv_v
+        color_details['hsl_h'] = hsl.hsl_h
+        color_details['hsl_s'] = hsl.hsl_s
+        color_details['hsl_l'] = hsl.hsl_l
+        return color_details
 
     def get_conversions(self, color_details=None):
-        r, g, b = color_details
-        hex = rgb_to_hex([r, g, b])
-        lab = lab_from_rgb((r, g, b))
+        hex = rgb_to_hex([color_details['r'], color_details['g'], color_details['b']])
+        lab = lab_from_rgb((color_details['r'], color_details['g'], color_details['b']))
         hsv = hsv_from_lab(lab)
         hsl = hsl_from_lab(lab)
-        return (r, g, b, hex, lab, hsv, hsl)
+        return (hex, lab, hsv, hsl)
 
     def transform(self):
         pass
@@ -115,28 +113,17 @@ if __name__ == '__main__':
         '--director',
         help='a single director name',
     )
-    args.add_argument(
-        '--movies',
-        help='a list of movies associated with the director '
-             '(e.g. "mulholland_drive" "blue_velvet")',
-        nargs='*'
-    )
-    args.add_argument(
-        '--num_clusters',
-        help='an integer value that '
-             'represents the number of clusters',
-        type=int
-    )
-    director = args.get('--director', None)
-    movies = args.get('--movies', None)
-    num_clusters = args.get('--num_clusters', 15)
 
-    if director and not movies:
-        raise Exception('You must pass a list of '
-                        '--movies if you pass a --director.')
+    director = args.get('--director', None)
+    directors = list()
 
     if not director:
-        directors = ['wes_anderson', 'david_lynch']
+        directors = ['christopher_nolan',
+                     'coen_brothers',
+                     'david_lynch',
+                     'francis_ford_coppola',
+                     'spike_jonze',
+                     'wes_anderson',]
     else:
         directors = [director]
 
@@ -147,8 +134,8 @@ if __name__ == '__main__':
             '{image_path}/{director}/'.format(image_path=image_path,
                                               director=director),
             topdown=False)][-1]
-        workflow = ColorClusteringWorkflow(movies=movies,
-                                           director=director,
-                                           num_clusters=num_clusters)
+
+        workflow = ColorCubeWorkflow(movies=movies,
+                                     director=director,)
 
         workflow.process()
