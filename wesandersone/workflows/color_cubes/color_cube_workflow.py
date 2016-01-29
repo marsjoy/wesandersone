@@ -102,10 +102,10 @@ class ColorCubeWorkflow(BaseETLWorkflow):
 
 if __name__ == '__main__':
 
-    args = Arguments(description='a script to upload images to tineye labs'
-                                 'and scrape extrated color information. '
-                                 'You can pass a director name, '
-                                 'and optionally a list of movie names. '
+    args = Arguments(description='a script to extract color information from '
+                                 'film stills and create a color cube to determine '
+                                 'the dominant colors. '
+                                 'You can pass a director name. '
                                  'If no director name '
                                  'is passed, the script defaults to all directors.')
 

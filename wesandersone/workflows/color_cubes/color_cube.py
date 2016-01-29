@@ -291,25 +291,3 @@ class ColorCube:
                 result.append(m)
 
         return result
-
-################################################################################
-# Command line example
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description='Get dominant colors of an image.')
-    parser.add_argument('image', help='Image file to process.')
-    args = parser.parse_args()
-
-    # Create color cube, avoiding resulting colors that are too close to white.
-    cc = ColorCube(avoid_color=[255, 255, 255])
-
-    # Load image and scale down to make the algorithm faster.
-    # Scaling down also gives colors that are more dominant in perception.
-    image = Image.open(args.image).resize((50, 50))
-
-    # Get colors for that image
-    colors = cc.get_colors(image)
-
-    # Print first four colors (there might be much more)
-    for c in colors[:10]:
-        print(c)

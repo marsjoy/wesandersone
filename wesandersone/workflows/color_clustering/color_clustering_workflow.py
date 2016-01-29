@@ -3,12 +3,14 @@
 # Retrieves dominant colors for film stills using k-means clustering
 import logging
 import os
+
+from color_cluster import ColorCluster
 from wesandersone.utilities import command
 from wesandersone.utilities.arguments import Arguments
-from wesandersone.utilities.color import hex_to_rgb, hsl_from_lab, hsv_from_lab, lab_from_rgb, rgb_to_hex
+from wesandersone.utilities.color import (hex_to_rgb, hsl_from_lab, hsv_from_lab, lab_from_rgb,
+                                          rgb_to_hex)
 from wesandersone.utilities.writer import save_row
 from wesandersone.workflows.base_etl_workflow import BaseETLWorkflow
-from color_cluster import ColorCluster
 
 logger = logging.getLogger(__name__)
 
@@ -104,10 +106,10 @@ class ColorClusteringWorkflow(BaseETLWorkflow):
 
 if __name__ == '__main__':
 
-    args = Arguments(description='a script to upload images to tineye labs'
-                                 'and scrape extrated color information. '
-                                 'You can pass a director name, '
-                                 'and optionally a list of movie names. '
+    args = Arguments(description='a script to extract color information '
+                                 'from film stills and determine dominant '
+                                 'colors with k-means clustering. '
+                                 'You can pass a director name. '
                                  'If no director name '
                                  'is passed, the script defaults to all directors.')
 
@@ -115,12 +117,7 @@ if __name__ == '__main__':
         '--director',
         help='a single director name',
     )
-    args.add_argument(
-        '--movies',
-        help='a list of movies associated with the director '
-             '(e.g. "mulholland_drive" "blue_velvet")',
-        nargs='*'
-    )
+
     args.add_argument(
         '--num_clusters',
         help='an integer value that '
@@ -128,15 +125,15 @@ if __name__ == '__main__':
         type=int
     )
     director = args.get('--director', None)
-    movies = args.get('--movies', None)
     num_clusters = args.get('--num_clusters', 15)
 
-    if director and not movies:
-        raise Exception('You must pass a list of '
-                        '--movies if you pass a --director.')
-
     if not director:
-        directors = ['wes_anderson', 'david_lynch']
+        directors = ['christopher_nolan',
+                     'coen_brothers',
+                     'david_lynch',
+                     'francis_ford_coppola',
+                     'spike_jonze',
+                     'wes_anderson',]
     else:
         directors = [director]
 

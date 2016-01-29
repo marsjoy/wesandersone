@@ -105,9 +105,8 @@ class ColorScraperWorkflow(BaseETLWorkflow):
 if __name__ == '__main__':
 
     args = Arguments(description='a script to upload images to tineye labs'
-                                 'and scrape extrated color information. '
-                                 'You can pass a director name, '
-                                 'and optionally a list of movie names. '
+                                 'and scrape extracted color information. '
+                                 'You can pass a director name. '
                                  'If no director name '
                                  'is passed, the script defaults to all directors.')
 
@@ -115,29 +114,26 @@ if __name__ == '__main__':
         '--director',
         help='a single director name',
     )
-    args.add_argument(
-        '--movies',
-        help='a list of movies associated with the director '
-             '(e.g. "mulholland_drive" "blue_velvet")',
-        nargs='*'
-    )
 
     director = args.get('--director', None)
-    movies = args.get('--movies', None)
 
     if not director:
-        directors = ['wes_anderson', 'david_lynch']
+        directors = ['christopher_nolan',
+                     'coen_brothers',
+                     'david_lynch',
+                     'francis_ford_coppola',
+                     'spike_jonze',
+                     'wes_anderson',]
     else:
         directors = [director]
 
     image_path = '/Users/marswilliams/wesandersone/images/'
 
     for director in directors:
-        if not movies:
-            movies = [x[1] for x in os.walk(
-                '{image_path}/{director}/'.format(image_path=image_path,
-                                                  director=director),
-                topdown=False)][-1]
+        movies = [x[1] for x in os.walk(
+            '{image_path}/{director}/'.format(image_path=image_path,
+                                              director=director),
+            topdown=False)][-1]
         workflow = ColorScraperWorkflow(movies=movies,
                                         director=director,)
 
