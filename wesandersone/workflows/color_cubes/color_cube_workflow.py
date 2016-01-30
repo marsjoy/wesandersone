@@ -42,6 +42,7 @@ class ColorCubeWorkflow(BaseETLWorkflow):
 
     def extract_colors_from_film_stills(self):
         for movie in movies:
+            logger.info('movie: {movie}'.format(movie=movie))
             film_stills_path = '{image_path}/' \
                                '{director}/' \
                                '{movie}/'.format(image_path=self.image_path,
@@ -51,8 +52,13 @@ class ColorCubeWorkflow(BaseETLWorkflow):
                 film_still_path = '{film_stills_path}' \
                                   '{film_still}'.format(film_stills_path=film_stills_path,
                                                         film_still=film_still)
-                self.extract_color_from_film_still(film_still=film_still_path,
-                                                   movie=movie)
+                logger.info(film_still)
+                try:
+                    self.extract_color_from_film_still(film_still=film_still_path,
+                                                       movie=movie)
+                except:
+                    logger.error('Unable to extract features for image: '
+                                 '{film_still}'.format(film_still=film_still))
 
     def extract_color_from_film_still(self, film_still=None, movie=None):
         color_cube = ColorCube(avoid_color=[255, 255, 255], image=film_still)
@@ -134,7 +140,6 @@ if __name__ == '__main__':
             '{image_path}/{director}/'.format(image_path=image_path,
                                               director=director),
             topdown=False)][-1]
-
         workflow = ColorCubeWorkflow(movies=movies,
                                      director=director,)
 

@@ -4,12 +4,14 @@
 import logging
 import os
 
+import numpy as np
+
+from neural_net import NeuralNetwork
 from wesandersone.utilities import command
 from wesandersone.utilities.arguments import Arguments
+from wesandersone.utilities.image import image_to_numpy_ndarray
 from wesandersone.utilities.writer import save_row
 from wesandersone.workflows.base_etl_workflow import BaseETLWorkflow
-from wesandersone.utilities.image import image_to_numpy_flattened_array
-from neural_net import NeuralNetwork
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +20,12 @@ class NeuralNetWorkflow(BaseETLWorkflow):
 
     def __init__(self,
                  movies=None,
-                 director=None):
+                 director=None,
+                 encoding=None):
         super(NeuralNetWorkflow, self).__init__(workflow_name='neural_net_workflow')
         self.movies = movies
         self.director = director
+        self.encoding = encoding
         self.image_path = self.config.path.get('source_data', None)
         self.file_name = 'extracted_film_still_properties'
         self.base_dir = str()
@@ -44,16 +48,21 @@ class NeuralNetWorkflow(BaseETLWorkflow):
                                                  director=self.director,
                                                  movie=movie)
             for film_still in os.listdir(film_stills_path):
-                film_still_path = '{film_stills_path}' \
-                                  '{film_still}'.format(film_stills_path=film_stills_path,
-                                                        film_still=film_still)
-                film_still_properties = {}
-                film_still_properties['image']= list(image_to_numpy_flattened_array(image=film_still_path))
-                film_still_properties['movie'] = movie
-                film_still_properties['director'] = self.director
-                save_row(file=self.extracted_film_still_properties_path,
-                         row=film_still_properties,
-                         field_names=['image', 'director', 'movie'])
+                try:
+                    film_still_path = '{film_stills_path}' \
+                                      '{film_still}'.format(film_stills_path=film_stills_path,
+                                                            film_still=film_still)
+                    logger.info(film_still_path)
+                    self.save_film_still_with_labels(image=film_still_path)
+                except Exception as error:
+                    logger.error(error)
+
+    def save_film_still_with_labels(self, image=None):
+        image_ndarray = image_to_numpy_ndarray(image=image)
+        converted_image_ndarray = np.divide(image_ndarray, 255.0)
+        reshaped = np.vstack(converted_image_ndarray).tolist()
+        save_row(file=self.extracted_film_still_properties_path,
+                 row=[reshaped, self.encoding])
 
     def transform(self):
         pass
@@ -77,12 +86,12 @@ if __name__ == '__main__':
     director = args.get('--director', None)
 
     if not director:
-        directors = ['christopher_nolan',
-                     'coen_brothers',
-                     'david_lynch',
-                     'francis_ford_coppola',
-                     'spike_jonze',
-                     'wes_anderson',]
+        directors = {'christopher_nolan': 1,
+                     'coen_brothers': 2,
+                     'david_lynch': 3,
+                     'francis_ford_coppola': 4,
+                     'spike_jonze': 5,
+                     'wes_anderson': 6,}
     else:
         directors = [director]
 
@@ -94,6 +103,7 @@ if __name__ == '__main__':
                                               director=director),
             topdown=False)][-1]
         workflow = NeuralNetWorkflow(movies=movies,
-                                     director=director,)
+                                     director=director,
+                                     encoding=directors[director])
 
         workflow.process()
