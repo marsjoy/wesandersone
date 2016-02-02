@@ -12,63 +12,75 @@ from wesandersone.utilities.arguments import Arguments
 from wesandersone.utilities.image import image_to_numpy_ndarray
 from wesandersone.utilities.writer import save_row
 from wesandersone.workflows.base_etl_workflow import BaseETLWorkflow
+from wesandersone.utilities.image import auto_correlogram
 
 logger = logging.getLogger(__name__)
 
 
 class NeuralNetWorkflow(BaseETLWorkflow):
 
-    def __init__(self,
-                 movies=None,
-                 director=None,
-                 encoding=None):
+    def __init__(self, directors=None):
         super(NeuralNetWorkflow, self).__init__(workflow_name='neural_net_workflow')
-        self.movies = movies
-        self.director = director
-        self.encoding = encoding
         self.image_path = self.config.path.get('source_data', None)
-        self.file_name = 'extracted_film_still_properties'
+        self.file_name = 'neural_net_workflow_scores.csv'
+        self.directors = directors
+        self.encoding = None
         self.base_dir = str()
         self.file = str()
         self.compressed_file = str()
         self.set_up()
-        self.extracted_film_still_properties_path = '{file}_' \
-                                                    '{director}.csv'.format(file=self.file,
-                                                                            director=director)
+        self.neural_net = NeuralNetwork()
 
     def set_up(self):
         self.base_dir, self.file, self.compressed_file = self.get_file_path()
         command.create_directories(self.base_dir)
 
     def extract(self):
-        for movie in movies:
-            film_stills_path = '{image_path}/' \
-                               '{director}/' \
-                               '{movie}/'.format(image_path=self.image_path,
-                                                 director=self.director,
-                                                 movie=movie)
-            for film_still in os.listdir(film_stills_path):
-                try:
-                    film_still_path = '{film_stills_path}' \
-                                      '{film_still}'.format(film_stills_path=film_stills_path,
-                                                            film_still=film_still)
-                    logger.info(film_still_path)
-                    self.save_film_still_with_labels(image=film_still_path)
-                except Exception as error:
-                    logger.error(error)
+        for director in directors:
+            self.encoding = directors[director]
+            movies = [x[1] for x in os.walk(
+                '{image_path}/{director}/'.format(image_path=self.image_path,
+                                                  director=director),
+                topdown=False)][-1]
+            for movie in movies:
+                film_stills_path = '{image_path}/' \
+                                   '{director}/' \
+                                   '{movie}/'.format(image_path=self.image_path,
+                                                     director=director,
+                                                     movie=movie)
+                self.extract_film_stills(film_stills_path=film_stills_path, movie=movie, director=director)
 
-    def save_film_still_with_labels(self, image=None):
+    def extract_film_stills(self, film_stills_path=None, movie=None, director=None):
+        for film_still in os.listdir(film_stills_path):
+            try:
+                film_still_path = '{film_stills_path}' \
+                                  '{film_still}'.format(film_stills_path=film_stills_path,
+                                                        film_still=film_still)
+                logger.info(film_still_path)
+                self.add_film_still_sample(image=film_still_path, movie=movie, director=director)
+            except Exception as error:
+                logger.error(error)
+
+    def add_film_still_sample(self, image=None, movie=None, director=None):
         image_ndarray = image_to_numpy_ndarray(image=image)
-        converted_image_ndarray = np.divide(image_ndarray, 255.0)
-        reshaped = np.vstack(converted_image_ndarray).tolist()
-        save_row(file=self.extracted_film_still_properties_path,
-                 row=[reshaped, self.encoding])
+        correlogram_matrix = auto_correlogram(image_ndarray)
+        len(correlogram_matrix)
+        self.neural_net.add_sample(correlogram_matrix=correlogram_matrix,
+                                   target=self.encoding,
+                                   sample_path=image)
+        save_row(file='{base_dir}/{director}'.format(base_dir=self.base_dir, director=director),
+                 row=[correlogram_matrix, movie, director])
 
     def transform(self):
-        pass
+        self.neural_net.process()
+        save_network_to_xml(net=None, file_name=None)
 
     def load(self):
-        pass
+        save_row(file=self.file,
+                 row=[self.neural_net.cross_validation_result,
+                      self.neural_net.test_result,
+                      self.neural_net.train_result])
+
 
 if __name__ == '__main__':
 
@@ -78,32 +90,13 @@ if __name__ == '__main__':
                                  'If no director name '
                                  'is passed, the script defaults to all directors.')
 
-    args.add_argument(
-        '--director',
-        help='a single director name',
-    )
+    directors = {'christopher_nolan': 0,
+                 'coen_brothers': 1,
+                 'david_lynch': 2,
+                 'francis_ford_coppola': 3,
+                 'spike_jonze': 4,
+                 'wes_anderson': 5,}
 
-    director = args.get('--director', None)
+    workflow = NeuralNetWorkflow(directors=directors)
 
-    if not director:
-        directors = {'christopher_nolan': 1,
-                     'coen_brothers': 2,
-                     'david_lynch': 3,
-                     'francis_ford_coppola': 4,
-                     'spike_jonze': 5,
-                     'wes_anderson': 6,}
-    else:
-        directors = [director]
-
-    image_path = '/Users/marswilliams/wesandersone/images/'
-
-    for director in directors:
-        movies = [x[1] for x in os.walk(
-            '{image_path}/{director}/'.format(image_path=image_path,
-                                              director=director),
-            topdown=False)][-1]
-        workflow = NeuralNetWorkflow(movies=movies,
-                                     director=director,
-                                     encoding=directors[director])
-
-        workflow.process()
+    workflow.process()
