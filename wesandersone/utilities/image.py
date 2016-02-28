@@ -6,6 +6,18 @@ import cv2
 import sys
 from scipy import sqrt, pi, arctan2, cos, sin
 from scipy.ndimage import uniform_filter
+from wesandersone.utilities import command
+from PIL import Image
+
+
+def image_to_pgm(image=None, output_path=None):
+    im = Image.open(image).convert('L')
+    image_name = '{image}.pgm'.format(image=image)
+    im.save(image_name)
+    cmd = 'sift {image_name} --output={output_path} --edge-thresh 10 --peak-thresh 5'.format(image_name=image_name,
+                                                                                             output_path=output_path)
+    logger.info(cmd)
+    command.run(cmd)
 
 
 def image_to_numpy_ndarray(image=None):
@@ -171,11 +183,11 @@ def HoG(img, See_graph=False, cell_per_blk=(3, 3), pix_per_cell=(5, 5), orientat
      Binning the gradient into how many orientation bins
     """
     if img is None:
-        print (" pic read failed")
+        logger.error('picture read failed')
         return -1
 
     if img.ndim > 3:
-        print (" gray-scale process only for speed performance")
+        logger.error('gray-scale process only for speed performance')
         return -1
 
     # gradient computation
@@ -204,7 +216,7 @@ def HoG(img, See_graph=False, cell_per_blk=(3, 3), pix_per_cell=(5, 5), orientat
         from skimage import draw
         hog_image = np.zeros(img.shape, dtype=float)
         radius = min(cx, cy) // 2 - 1
-        print ("Drawing HOG output...")
+        logger.info('Drawing HOG output...')
         for x in range(ncell_x):
             for y in range(ncell_y):
                 for o in range(orientation):
@@ -229,6 +241,3 @@ def HoG(img, See_graph=False, cell_per_blk=(3, 3), pix_per_cell=(5, 5), orientat
             normalised_blocks[y, x, :] = block / sqrt(block.sum() ** 2 + eps)
 
     return normalised_blocks
-
-
-

@@ -29,7 +29,14 @@ class NeuralNetWorkflow(BaseETLWorkflow):
         self.file = str()
         self.compressed_file = str()
         self.set_up()
-        self.neural_net = NeuralNetwork()
+        self.neural_net = NeuralNetwork(num_inputs=256,
+                                        num_ouputs=5,
+                                        classes=5,
+                                        class_lables=['christopher_nolan',
+                                                      'coen_brothers',
+                                                      'david_lynch',
+                                                      'spike_jonze',
+                                                      'wes_anderson'])
 
     def set_up(self):
         self.base_dir, self.file, self.compressed_file = self.get_file_path()
@@ -68,8 +75,6 @@ class NeuralNetWorkflow(BaseETLWorkflow):
         self.neural_net.add_sample(correlogram_matrix=correlogram_matrix,
                                    target=self.encoding,
                                    sample_path=image)
-        save_row(file='{base_dir}/{director}'.format(base_dir=self.base_dir, director=director),
-                 row=[correlogram_matrix, movie, director])
 
     def transform(self):
         self.neural_net.process()
@@ -93,9 +98,8 @@ if __name__ == '__main__':
     directors = {'christopher_nolan': 0,
                  'coen_brothers': 1,
                  'david_lynch': 2,
-                 'francis_ford_coppola': 3,
-                 'spike_jonze': 4,
-                 'wes_anderson': 5,}
+                 'spike_jonze': 3,
+                 'wes_anderson': 4,}
 
     workflow = NeuralNetWorkflow(directors=directors)
 
